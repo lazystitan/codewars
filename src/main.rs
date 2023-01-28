@@ -139,41 +139,50 @@ enum Direction {
 }
 
 fn dir_reduc(arr: &[Direction]) -> Vec<Direction> {
+    /*
     let mut pair;
-    let mut marks = vec![true; arr.len()];
+    let arr_len = arr.len();
+    let mut marks = vec![true; arr_len];
     let mut marks_changed = false;
     if arr.len() < 2 { return arr.iter().map(|d| *d).collect() }
     loop {
-        marks_changed = false;
         let mut i = 0;
         let mut j = 1;
-        pair = (arr[i], arr[j]);
-        match pair {
-            (Direction::North, Direction::South)
-            | (Direction::South, Direction::North)
-            | (Direction::West, Direction::East)
-            | (Direction::East, Direction::West) => {
-                marks[i] = false; marks[j] = false;
+        marks_changed = false;
+        while j < arr_len {
+            while i < arr_len - 1 && !marks[i] {
+                i+= 1;
             }
-            _ => {}
-        }
-        if j + 1 > arr.len() - 1 {
-            if marks_changed {
-                i = 0; j = 1;
-            } else {
+            if i >= arr_len - 1 {
                 break;
             }
-        }
-        i+= 1; j+= 1;
-        while !marks[i] && i + 1 < arr.len() - 1 {
-            i += 1;
-        }
+            j = i + 1;
+            while j < arr_len && !marks[j] {
+                j+= 1;
+            }
+            if j > arr_len - 1 {
+                break;
+            }
 
-        while j < i && j < arr.len() - 1 {
-            j += 1;
+            pair = (arr[i], arr[j]);
+            match pair {
+                (Direction::North, Direction::South)
+                | (Direction::South, Direction::North)
+                | (Direction::West, Direction::East)
+                | (Direction::East, Direction::West) => {
+                    marks_changed = true;
+                    marks[i] = false;
+                    marks[j] = false;
+                    i = j + 1;
+                    j = i + 1;
+                }
+                _ => {
+                    i += 1;
+                    j += 1;
+                }
+            }
         }
-
-        if i == j {
+        if !marks_changed {
             break;
         }
     }
@@ -183,6 +192,21 @@ fn dir_reduc(arr: &[Direction]) -> Vec<Direction> {
         .filter(|(i, _)| marks[*i])
         .map(|(_, d)| *d)
         .collect()
+     */
+
+    let mut s = vec![];
+    for d in arr {
+        match (d, s.last()) {
+            (Direction::North, Some(Direction::South))
+            | (Direction::South, Some(Direction::North))
+            | (Direction::West, Some(Direction::East))
+            | (Direction::East, Some(Direction::West)) => {
+                s.pop();
+            },
+            _ => s.push(*d)
+        }
+    }
+    s
 }
 
 fn main() {
