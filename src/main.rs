@@ -119,6 +119,71 @@ fn is_valid_walk(walk: &[char]) -> bool {
     p == (0, 0) && s == 10
 }
 
+fn make_readable(seconds: u32) -> String {
+    let mut left = seconds;
+    let s = left % 60;
+    left = left / 60;
+    let m = left % 60;
+    left = left / 60;
+    let h = left;
+
+    format!("{:0>2}:{:0>2}:{:0>2}", h, m, s)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Direction {
+    North,
+    East,
+    West,
+    South,
+}
+
+fn dir_reduc(arr: &[Direction]) -> Vec<Direction> {
+    let mut pair;
+    let mut marks = vec![true; arr.len()];
+    let mut marks_changed = false;
+    if arr.len() < 2 { return arr.iter().map(|d| *d).collect() }
+    loop {
+        marks_changed = false;
+        let mut i = 0;
+        let mut j = 1;
+        pair = (arr[i], arr[j]);
+        match pair {
+            (Direction::North, Direction::South)
+            | (Direction::South, Direction::North)
+            | (Direction::West, Direction::East)
+            | (Direction::East, Direction::West) => {
+                marks[i] = false; marks[j] = false;
+            }
+            _ => {}
+        }
+        if j + 1 > arr.len() - 1 {
+            if marks_changed {
+                i = 0; j = 1;
+            } else {
+                break;
+            }
+        }
+        i+= 1; j+= 1;
+        while !marks[i] && i + 1 < arr.len() - 1 {
+            i += 1;
+        }
+
+        while j < i && j < arr.len() - 1 {
+            j += 1;
+        }
+
+        if i == j {
+            break;
+        }
+    }
+
+    arr.iter()
+        .enumerate()
+        .filter(|(i, _)| marks[*i])
+        .map(|(_, d)| *d)
+        .collect()
+}
 
 fn main() {
     assert!(array_diff(vec![1, 2, 2, 2, 3], vec![2]) == vec![1, 3]);
@@ -126,9 +191,8 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    use super::Direction::*;
     use super::*;
-    use super::dna_strand;
-    use super::validate_pin;
 
     #[test]
     fn sample_tests() {
@@ -255,5 +319,32 @@ mod tests {
         assert!(! is_valid_walk(&['w']));
         assert!(! is_valid_walk(&['n','n','n','s','n','s','n','s','n','s']));
         assert!(! is_valid_walk(&['e', 'e', 'e', 'e', 'w', 'w', 's', 's', 's', 's']))
+    }
+
+    const RT_ERR_MSG: &str = "\nYour result (left) did not match the expected output (right)";
+
+    fn readable_time_dotest(s: u32, expected: &str) {
+        assert_eq!(make_readable(s), expected, "{RT_ERR_MSG} with seconds = {s}")
+    }
+
+    #[test]
+    fn readable_time_tests() {
+        readable_time_dotest(0, "00:00:00");
+        readable_time_dotest(59, "00:00:59");
+        readable_time_dotest(60, "00:01:00");
+        readable_time_dotest(3599, "00:59:59");
+        readable_time_dotest(3600, "01:00:00");
+        readable_time_dotest(86399, "23:59:59");
+        readable_time_dotest(86400, "24:00:00");
+        readable_time_dotest(359999, "99:59:59");
+    }
+
+    #[test]
+    fn basic() {
+        let a = [North, South, South, East, West, North, West];
+        assert_eq!(dir_reduc(&a), [West]);
+
+        let a = [North, West, South, East];
+        assert_eq!(dir_reduc(&a), [North, West, South, East]);
     }
 }
