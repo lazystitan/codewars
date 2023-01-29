@@ -1,3 +1,5 @@
+use std::cmp::min;
+
 fn array_diff<T: PartialEq>(a: Vec<T>, b: Vec<T>) -> Vec<T> {
     // a.retain(|x| !b.contains(x));
     a.into_iter().filter(|item| {
@@ -202,11 +204,158 @@ fn dir_reduc(arr: &[Direction]) -> Vec<Direction> {
             | (Direction::West, Some(Direction::East))
             | (Direction::East, Some(Direction::West)) => {
                 s.pop();
-            },
+            }
             _ => s.push(*d)
         }
     }
     s
+}
+
+fn to_camel_case(text: &str) -> String {
+    /*
+    let mut s = String::new();
+    let mut flag = false;
+    for c in text.chars() {
+        if c == '-' || c == '_' {
+            flag = true;
+        } else if flag {
+            s += &c.to_uppercase().to_string();
+            flag = false;
+        } else {
+            s += &c.to_string();
+        }
+
+    }
+    s
+    */
+    text.split(&['-', '_'])
+        .enumerate()
+        .map(|(i, w)| match i {
+        0 => w.to_string(),
+        _ => w[..1].to_uppercase() + &w[1..]
+    }).collect()
+}
+
+fn two_sum(numbers: &[i32], target: i32) -> (usize, usize) {
+    let mut p = 0;
+    loop {
+        let left = target - numbers[p];
+        for (i, &n) in numbers[(p + 1)..].iter().enumerate() {
+            if left == n {
+                return (p, i + p + 1);
+            }
+        }
+        p += 1;
+    }
+}
+
+fn rot13(message: &str) -> String {
+    message.chars().map(|c| {
+        if c.is_alphabetic() && !c.is_uppercase() {
+            let mut c  = c as u32 + 13;
+            if  c > 'z' as u32 {
+                c = c - 'z' as u32 + 'a' as u32 - 1;
+            }
+            char::from_u32(c).unwrap()
+        } else if c.is_alphabetic() && c.is_uppercase() {
+            let mut c  = c as u32 + 13;
+            if  c > 'Z' as u32 {
+                c = c - 'Z' as u32 + 'A' as u32 - 1;
+            }
+            char::from_u32(c).unwrap()
+        } else {
+            c
+        }
+    }).collect()
+    /*
+    message.chars().map(|c| {
+        match c {
+            'A' ..= 'M' | 'a' ..= 'm' => ((c as u8) + 13) as char,
+            'N' ..= 'Z' | 'n' ..= 'z' => ((c as u8) - 13) as char,
+            _ => c,
+        }
+    }).collect()
+     */
+}
+
+fn tower_builder(n_floors: usize) -> Vec<String> {
+    /*
+    let mut r = vec![];
+    let m = n_floors * 2 - 1;
+    for f in 0..n_floors {
+        let f = f + 1;
+        let mut s = String::new();
+        let n = f * 2 - 1;
+        let w = (m - n) /2;
+        for _ in 0..w {
+            s.push(' ');
+        }
+        for _ in 0..n {
+            s.push('*');
+        }
+        for _ in 0..w {
+            s.push(' ');
+        }
+        r.push(s);
+    }
+    r
+     */
+    let mut r = Vec::with_capacity(n_floors);
+    for floor in 1..=n_floors {
+        r.push(
+            format!(
+                "{}{}{}",
+                " ".repeat(n_floors - floor),
+                "*".repeat(2*floor - 1),
+                " ".repeat(n_floors - floor)
+            )
+        );
+    }
+    r
+}
+
+fn parts_sums(ls: &[u64]) -> Vec<u64> {
+    let mut r = vec![0; ls.len() + 1];
+    for i in (0..ls.len()).rev() {
+        r[i] = r[i + 1] + ls[i];
+    }
+    r
+}
+
+fn valid_isbn10(isbn: &str) -> bool {
+    /*
+    if isbn.len() != 10 ||
+        isbn[0..9].chars().filter(|c| !c.is_numeric()).collect::<Vec<char>>().len() != 0 {
+        return false;
+    }
+    isbn.chars()
+        .enumerate()
+        .map(|(i, c)| {
+            if c == 'X' {
+                return (i + 1) * 10;
+            }
+            (i + 1) * (c as u32 - '0' as u32) as usize
+        })
+        .sum::<usize>() % 11 == 0
+     */
+    isbn.len() == 10 &&
+    isbn.chars().enumerate().all(|(i, c)| c.is_numeric() || (c == 'X' && i == 9)) &&
+    isbn.chars().enumerate().map(|(i, c)| c.to_digit(10).unwrap_or(10) * (i as u32 + 1)).sum::<u32>() % 11 == 0
+}
+
+/// Write a program that will calculate the number of trailing zeros in a factorial of a given
+/// number.
+fn zeros(n: u64) -> u64 {
+    if n >= 5 {
+        return n / 5 + zeros(n / 5);
+    } else {
+        return 0;
+    }
+    // std::iter::successors(Some(n/5), |&n| Some(n/5)).take_while(|&n| n > 0).sum()
+}
+
+fn decompose(n: i64) -> Option<Vec<i64>> {
+
 }
 
 fn main() {
@@ -338,17 +487,15 @@ mod tests {
 
     #[test]
     fn walk_tests() {
-        assert!(  is_valid_walk(&['n','s','n','s','n','s','n','s','n','s']));
-        assert!(! is_valid_walk(&['w','e','w','e','w','e','w','e','w','e','w','e']));
-        assert!(! is_valid_walk(&['w']));
-        assert!(! is_valid_walk(&['n','n','n','s','n','s','n','s','n','s']));
-        assert!(! is_valid_walk(&['e', 'e', 'e', 'e', 'w', 'w', 's', 's', 's', 's']))
+        assert!(is_valid_walk(&['n', 's', 'n', 's', 'n', 's', 'n', 's', 'n', 's']));
+        assert!(!is_valid_walk(&['w', 'e', 'w', 'e', 'w', 'e', 'w', 'e', 'w', 'e', 'w', 'e']));
+        assert!(!is_valid_walk(&['w']));
+        assert!(!is_valid_walk(&['n', 'n', 'n', 's', 'n', 's', 'n', 's', 'n', 's']));
+        assert!(!is_valid_walk(&['e', 'e', 'e', 'e', 'w', 'w', 's', 's', 's', 's']))
     }
 
-    const RT_ERR_MSG: &str = "\nYour result (left) did not match the expected output (right)";
-
     fn readable_time_dotest(s: u32, expected: &str) {
-        assert_eq!(make_readable(s), expected, "{RT_ERR_MSG} with seconds = {s}")
+        assert_eq!(make_readable(s), expected, "{ERR_MSG} with seconds = {s}")
     }
 
     #[test]
@@ -370,5 +517,116 @@ mod tests {
 
         let a = [North, West, South, East];
         assert_eq!(dir_reduc(&a), [North, West, South, East]);
+    }
+
+
+    fn to_camel_case_dotest(s: &str, expected: &str) {
+        assert_eq!(to_camel_case(s), expected, "{ERR_MSG} with text = \"{s}\"")
+    }
+
+    #[test]
+    fn to_camel_case_tests() {
+        to_camel_case_dotest("", "");
+        to_camel_case_dotest("the_stealth_warrior", "theStealthWarrior");
+        to_camel_case_dotest("The-Stealth-Warrior", "TheStealthWarrior");
+        to_camel_case_dotest("A-B-C", "ABC");
+    }
+
+    #[test]
+    fn sample() {
+        two_sum_do_test(&[1, 2, 3], 4);
+        two_sum_do_test(&[1234, 5678, 9012], 14690);
+        two_sum_do_test(&[2, 2, 3], 4);
+    }
+
+    fn two_sum_do_test(nums: &[i32], sum: i32) {
+        let len = nums.len();
+        let user_tuple = two_sum(nums, sum);
+        assert!(
+            user_tuple.0 < len && user_tuple.1 < len,
+            "\nnumbers: {:?}\ntarget: {}\nresult: {:?}\nresult tuple has an index out of bounds",
+            nums, sum, user_tuple
+        );
+        assert_ne!(user_tuple.0, user_tuple.1, "\nnumbers: {:?}\ntarget: {}\nresult: {:?}\nresult tuple must have two different indices", nums, sum, user_tuple);
+        let num1 = nums[user_tuple.0];
+        let num2 = nums[user_tuple.1];
+        let user_sum = num1 + num2;
+        assert_eq!(user_sum, sum, "\nnumbers: {:?}\ntarget: {}\nresult: {:?}\nnumber as index {}: {}\nnumber as index {}: {}\nsum of the two numbers: {}\nsum of the two numbers did not equal target", nums, sum, user_tuple, user_tuple.0, num1, user_tuple.1, num2, user_sum)
+    }
+
+    fn rot13_dotest(s: &str, expected: &str) {
+        assert_eq!(rot13(s), expected, "{ERR_MSG} with message = \"{s}\"")
+    }
+
+    #[test]
+    fn rot13_sample_tests() {
+        rot13_dotest("tesz", "grfm");
+        rot13_dotest("Test", "Grfg");
+    }
+
+    #[test]
+    fn tower_builder_tests() {
+        assert_eq!(tower_builder(1), vec!["*"]);
+        assert_eq!(tower_builder(2), vec![" * ", "***"]);
+        assert_eq!(tower_builder(3), vec!["  *  ", " *** ", "*****"]);
+    }
+
+    fn parts_sums_dotest(ls: Vec<u64>, expect: Vec<u64>) {
+        let actual = parts_sums(&ls);
+        assert_eq!(actual, expect);
+    }
+
+    #[test]
+    fn example() {
+        parts_sums_dotest(vec![], vec![0]);
+        parts_sums_dotest(vec![0, 1, 3, 6, 10], vec![20, 20, 19, 16, 10, 0]);
+        parts_sums_dotest(vec![1, 2, 3, 4, 5, 6], vec![21, 20, 18, 15, 11, 6, 0]);
+        parts_sums_dotest(vec![744125, 935, 407, 454, 430, 90, 144, 6710213, 889, 810, 2579358],
+               vec![10037855, 9293730, 9292795, 9292388, 9291934, 9291504, 9291414, 9291270, 2581057, 2580168, 2579358, 0]);
+    }
+
+    fn valid_isbn10_dotest(isbn: &str, expected: bool) {
+        let actual = valid_isbn10(isbn);
+        assert!(actual == expected, "Test failed with isbn = {isbn}\nExpected {expected} but got {actual}")
+    }
+
+    #[test]
+    fn valid_isbn10_tests() {
+        valid_isbn10_dotest("1112223339", true);
+        valid_isbn10_dotest("048665088X", true);
+        valid_isbn10_dotest("1293000000", true);
+        valid_isbn10_dotest("1234554321", true);
+        valid_isbn10_dotest("1234512345", false);
+        valid_isbn10_dotest("1293", false);
+        valid_isbn10_dotest("X123456788", false);
+        valid_isbn10_dotest("ABCDEFGHIJ", false);
+        valid_isbn10_dotest("XXXXXXXXXX", false);
+        valid_isbn10_dotest("123456789T", false);
+    }
+
+    #[test]
+    fn zeros_tests() {
+        assert_eq!(zeros(0), 0);
+        assert_eq!(zeros(5), 1);
+        assert_eq!(zeros(6), 1);
+        assert_eq!(zeros(14), 2);
+        assert_eq!(zeros(30), 7);
+        assert_eq!(zeros(1000), 249);
+        assert_eq!(zeros(100000), 24999);
+        assert_eq!(zeros(1000000000), 249999998);
+    }
+
+    fn decompose_testing(n: i64, exp: Option<Vec<i64>>) -> () {
+        assert_eq!(decompose(n), exp)
+    }
+
+    #[test]
+    fn tests_decompose() {
+
+        decompose_testing(50, Some(vec![1,3,5,8,49]));
+        decompose_testing(44, Some(vec![2,3,5,7,43]));
+        decompose_testing(625, Some(vec![2,5,8,34,624]));
+        decompose_testing(5, Some(vec![3,4]));
+
     }
 }
