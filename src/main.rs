@@ -355,7 +355,32 @@ fn zeros(n: u64) -> u64 {
 }
 
 fn decompose(n: i64) -> Option<Vec<i64>> {
-
+    let mut v= n - 1;
+    let mut left = n * n;
+    let mut st = vec![n];
+    loop {
+        if left < 0 {
+            let t = st.pop().unwrap();
+            v = t - 1;
+            left += t * t;
+        } else if left == 0 {
+            st.reverse();
+            st.pop();
+            return Some(st);
+        } else if v == 1 && left > 1 {
+            let t = st.pop().unwrap();
+            v = t - 1;
+            left += t * t;
+        } else if left > 0 {
+            st.push(v);
+            left -= v * v;
+            v = v - 1;
+        }
+        if st.is_empty() {
+            break;
+        }
+    }
+    None
 }
 
 fn main() {
@@ -627,6 +652,7 @@ mod tests {
         decompose_testing(44, Some(vec![2,3,5,7,43]));
         decompose_testing(625, Some(vec![2,5,8,34,624]));
         decompose_testing(5, Some(vec![3,4]));
+        decompose_testing(12, Some(vec![1, 2, 3, 7, 9]));
 
     }
 }
