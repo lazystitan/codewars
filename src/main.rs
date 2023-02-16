@@ -383,6 +383,68 @@ fn decompose(n: i64) -> Option<Vec<i64>> {
     None
 }
 
+
+//5+(6-2)*9+3^(7-1)
+//562-9*+371-
+//+^
+
+//1^2^3+4
+//123^^4+
+
+//244/6/2*/5109/92*^^^0-54/+/1*4-1-28/1^+10*-93^+63/+8-
+//244/6/2*/51099^/2*^^0-54/+/1*4-1-281^/+10*-93^+63/+8-
+
+//1+2^(3*2/0)
+//123
+//+^(*
+fn to_postfix(infix: &str) -> String {
+    // "".to_string()
+    let mut s = vec![];
+    let mut r = vec![];
+    for c in infix.chars() {
+        if c.is_numeric() {
+            r.push(c);
+        } else {
+            if c == '(' {
+                s.push(c);
+            } else if c == ')' {
+                while *(s.last().unwrap()) != '(' {
+                    r.push(s.pop().unwrap());
+                }
+                s.pop();
+            } else if ['+', '-'].contains(&c) {
+                while !s.is_empty()
+                    && ['*', '/', '+', '-', '^'].contains(s.last().unwrap()) {
+                    r.push(s.pop().unwrap());
+                }
+                s.push(c);
+            } else if ['*', '/'].contains(&c) {
+                while !s.is_empty()
+                    && ['*', '/', '^'].contains(s.last().unwrap()){
+                    r.push(s.pop().unwrap());
+                }
+                s.push(c);
+            } else if c == '^' {
+                // while !s.is_empty()
+                //     && *(s.last().unwrap()) != '^' {
+                //     r.push(s.pop().unwrap());
+                // }
+                s.push(c);
+            } else {
+                continue;
+            }
+        }
+    }
+
+    while !s.is_empty() {
+        r.push(s.pop().unwrap());
+    }
+
+    r.into_iter().collect()
+
+}
+
+
 fn main() {
     assert!(array_diff(vec![1, 2, 2, 2, 3], vec![2]) == vec![1, 3]);
 }
@@ -654,5 +716,27 @@ mod tests {
         decompose_testing(5, Some(vec![3,4]));
         decompose_testing(12, Some(vec![1, 2, 3, 7, 9]));
 
+    }
+
+    fn to_postfix_do_test(actual: &str, expected: &str) {
+        assert_eq!(actual, expected, "\nYour answer (left) is not the correct answer (right)")
+    }
+
+    #[test]
+    fn to_postfix_tests() {
+        to_postfix_do_test(&to_postfix("2+7*5"), "275*+");
+        to_postfix_do_test(&to_postfix("3*3/(7+1)"), "33*71+/");
+        to_postfix_do_test(&to_postfix("5+(6-2)*9+3^(7-1)"), "562-9*+371-^+");
+        to_postfix_do_test(&to_postfix("(5-4-1)+9/5/2-7/1/7"), "54-1-95/2/+71/7/-");
+        to_postfix_do_test(&to_postfix("1^2^3"), "123^^");
+    }
+
+    #[test]
+    fn char_string_test() {
+        let s = String::from("1");
+        for c in s.chars() {
+            assert_eq!(c as u32, '1' as u32);
+            assert_eq!(c, '1');
+        }
     }
 }
