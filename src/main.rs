@@ -1,4 +1,5 @@
 use std::cmp::min;
+use std::collections::{HashMap, HashSet};
 
 fn array_diff<T: PartialEq>(a: Vec<T>, b: Vec<T>) -> Vec<T> {
     // a.retain(|x| !b.contains(x));
@@ -231,9 +232,9 @@ fn to_camel_case(text: &str) -> String {
     text.split(&['-', '_'])
         .enumerate()
         .map(|(i, w)| match i {
-        0 => w.to_string(),
-        _ => w[..1].to_uppercase() + &w[1..]
-    }).collect()
+            0 => w.to_string(),
+            _ => w[..1].to_uppercase() + &w[1..]
+        }).collect()
 }
 
 fn two_sum(numbers: &[i32], target: i32) -> (usize, usize) {
@@ -252,14 +253,14 @@ fn two_sum(numbers: &[i32], target: i32) -> (usize, usize) {
 fn rot13(message: &str) -> String {
     message.chars().map(|c| {
         if c.is_alphabetic() && !c.is_uppercase() {
-            let mut c  = c as u32 + 13;
-            if  c > 'z' as u32 {
+            let mut c = c as u32 + 13;
+            if c > 'z' as u32 {
                 c = c - 'z' as u32 + 'a' as u32 - 1;
             }
             char::from_u32(c).unwrap()
         } else if c.is_alphabetic() && c.is_uppercase() {
-            let mut c  = c as u32 + 13;
-            if  c > 'Z' as u32 {
+            let mut c = c as u32 + 13;
+            if c > 'Z' as u32 {
                 c = c - 'Z' as u32 + 'A' as u32 - 1;
             }
             char::from_u32(c).unwrap()
@@ -306,7 +307,7 @@ fn tower_builder(n_floors: usize) -> Vec<String> {
             format!(
                 "{}{}{}",
                 " ".repeat(n_floors - floor),
-                "*".repeat(2*floor - 1),
+                "*".repeat(2 * floor - 1),
                 " ".repeat(n_floors - floor)
             )
         );
@@ -339,8 +340,8 @@ fn valid_isbn10(isbn: &str) -> bool {
         .sum::<usize>() % 11 == 0
      */
     isbn.len() == 10 &&
-    isbn.chars().enumerate().all(|(i, c)| c.is_numeric() || (c == 'X' && i == 9)) &&
-    isbn.chars().enumerate().map(|(i, c)| c.to_digit(10).unwrap_or(10) * (i as u32 + 1)).sum::<u32>() % 11 == 0
+        isbn.chars().enumerate().all(|(i, c)| c.is_numeric() || (c == 'X' && i == 9)) &&
+        isbn.chars().enumerate().map(|(i, c)| c.to_digit(10).unwrap_or(10) * (i as u32 + 1)).sum::<u32>() % 11 == 0
 }
 
 /// Write a program that will calculate the number of trailing zeros in a factorial of a given
@@ -355,7 +356,7 @@ fn zeros(n: u64) -> u64 {
 }
 
 fn decompose(n: i64) -> Option<Vec<i64>> {
-    let mut v= n - 1;
+    let mut v = n - 1;
     let mut left = n * n;
     let mut st = vec![n];
     loop {
@@ -420,7 +421,7 @@ fn to_postfix(infix: &str) -> String {
                 s.push(c);
             } else if ['*', '/'].contains(&c) {
                 while !s.is_empty()
-                    && ['*', '/', '^'].contains(s.last().unwrap()){
+                    && ['*', '/', '^'].contains(s.last().unwrap()) {
                     r.push(s.pop().unwrap());
                 }
                 s.push(c);
@@ -441,7 +442,84 @@ fn to_postfix(infix: &str) -> String {
     }
 
     r.into_iter().collect()
+}
 
+fn is_prime(n: u64) -> bool {
+    let upper = ((n as f64).sqrt()) as u64;
+    for i in 2..=upper {
+        if n % i == 0 {
+            return false;
+        }
+    }
+    true
+}
+
+fn prime_factorisation(mut n: u64, prime_list: &mut Vec<u64>) -> Vec<u64> {
+    let mut factors_list = vec![1];
+
+    //prime already known
+    for &prime in prime_list.iter() {
+        while n % prime == 0 && n >= prime {
+            factors_list.push(prime);
+            n /= prime;
+        }
+
+        if n < prime {
+            return factors_list;
+        }
+    }
+
+    //find new if needed
+    for i in (prime_list[prime_list.len() - 1] + 1)..=n {
+        if is_prime(i) {
+            prime_list.push(i);
+            while n % i == 0 && n >= i {
+                factors_list.push(i);
+                n /= i;
+            }
+        }
+    }
+    factors_list
+}
+
+fn smallest_possible_sum(arr: &[u64]) -> u128 {
+    if arr.len() == 0 {
+        return 0;
+    }
+    let len = arr.len();
+    let mut hs = vec![];
+    let mut prime_list = vec![2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31];
+
+    arr.iter().for_each(|&x| hs.push(prime_factorisation(x, &mut prime_list)));
+
+    let mut sets: Vec<HashSet<_>> = hs.iter().map(|x|
+        HashSet::from_iter(x.iter())
+    ).collect();
+
+    let mut last = sets.pop().unwrap();
+    for s in sets {
+        last = s.intersection(&last).map(|n| *n).collect();
+    }
+
+    let mut dividers_count = HashMap::new();
+
+    hs.iter().for_each(|x| last.iter().for_each(|&&n| {
+        let count = x.iter().filter(|&&x| x == n).count();
+        dividers_count.entry(n)
+            .and_modify(|x| *x = min(*x, count))
+            .or_insert(count);
+    }));
+
+
+    let mut biggest_factor = 1;
+    for &n in last {
+        let count = dividers_count.get(&n).unwrap();
+        for _ in 0..*count {
+            biggest_factor *= n as u128;
+        }
+    }
+
+    biggest_factor * len as u128
 }
 
 
@@ -451,8 +529,8 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::Direction::*;
     use super::*;
+    use super::Direction::*;
 
     #[test]
     fn sample_tests() {
@@ -669,7 +747,7 @@ mod tests {
         parts_sums_dotest(vec![0, 1, 3, 6, 10], vec![20, 20, 19, 16, 10, 0]);
         parts_sums_dotest(vec![1, 2, 3, 4, 5, 6], vec![21, 20, 18, 15, 11, 6, 0]);
         parts_sums_dotest(vec![744125, 935, 407, 454, 430, 90, 144, 6710213, 889, 810, 2579358],
-               vec![10037855, 9293730, 9292795, 9292388, 9291934, 9291504, 9291414, 9291270, 2581057, 2580168, 2579358, 0]);
+                          vec![10037855, 9293730, 9292795, 9292388, 9291934, 9291504, 9291414, 9291270, 2581057, 2580168, 2579358, 0]);
     }
 
     fn valid_isbn10_dotest(isbn: &str, expected: bool) {
@@ -709,13 +787,11 @@ mod tests {
 
     #[test]
     fn tests_decompose() {
-
-        decompose_testing(50, Some(vec![1,3,5,8,49]));
-        decompose_testing(44, Some(vec![2,3,5,7,43]));
-        decompose_testing(625, Some(vec![2,5,8,34,624]));
-        decompose_testing(5, Some(vec![3,4]));
+        decompose_testing(50, Some(vec![1, 3, 5, 8, 49]));
+        decompose_testing(44, Some(vec![2, 3, 5, 7, 43]));
+        decompose_testing(625, Some(vec![2, 5, 8, 34, 624]));
+        decompose_testing(5, Some(vec![3, 4]));
         decompose_testing(12, Some(vec![1, 2, 3, 7, 9]));
-
     }
 
     fn to_postfix_do_test(actual: &str, expected: &str) {
@@ -738,5 +814,50 @@ mod tests {
             assert_eq!(c as u32, '1' as u32);
             assert_eq!(c, '1');
         }
+    }
+
+    #[test]
+    fn smallest_possible_sum_tests() {
+        assert_eq!(smallest_possible_sum(&[1, 21, 55]), 3);
+        assert_eq!(smallest_possible_sum(&[3, 13, 23, 7, 83]), 5);
+        assert_eq!(smallest_possible_sum(&[4, 16, 24]), 12);
+        assert_eq!(smallest_possible_sum(&[30, 12]), 12);
+        assert_eq!(smallest_possible_sum(&[60, 12, 96, 48, 60, 24, 72, 36, 72, 72, 48]), 132);
+        assert_eq!(smallest_possible_sum(&[71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71]), 923);
+        assert_eq!(smallest_possible_sum(&[11, 22]), 22);
+        assert_eq!(smallest_possible_sum(&[9]), 9);
+        assert_eq!(smallest_possible_sum(&[1]), 1);
+        assert_eq!(smallest_possible_sum(&[9, 9]), 18);
+
+
+        assert_eq!(smallest_possible_sum(&[17, 527, 323]), 51);
+        assert_eq!(smallest_possible_sum(&[4, 4, 4]), 12);
+        assert_eq!(smallest_possible_sum(&[3570, 7140]), 7140);
+        assert_eq!(smallest_possible_sum(&[12, 12]), 24);
+        assert_eq!(smallest_possible_sum(&[11, 11 * 2, 11 * 5, 11 * 2 * 5, 19 * 11, 19 * 11 * 5, 11 * 19 * 31, 11 * 19 * 31, 11]), 99);
+        // assert_eq!(smallest_possible_sum(&[7*17*37*43*128591, 7*17*37*128591, 17*37*43*128591, 17*37*43]), 17*37*4);
+        assert_eq!(smallest_possible_sum(&[7 * 128591, 17 * 128591]), 128591 * 2);
+        assert_eq!(smallest_possible_sum(&[
+            2 * 2 * 2 * 2 * 3 * 7 * 7 * 19 * 23 * 23 * 43,
+            2 * 3 * 7 * 7 * 19 * 23 * 23 * 43
+        ]), 2 * 3 * 7 * 7 * 19 * 23 * 23 * 43 * 2);
+        assert_eq!(smallest_possible_sum(&[
+            2 * 2 * 3 * 13 * 37,
+            2 * 2 * 3 * 13 * 37,
+            2 * 2 * 3 * 13 * 37 * 19,
+            2 * 2 * 3 * 13 * 37 * 13,
+            2 * 2 * 3 * 13 * 37 * 7,
+            2 * 2 * 3 * 13 * 37 * 3,
+            2 * 2 * 3 * 13 * 37 * 2
+        ]), 40404);
+    }
+
+    #[test]
+    fn is_prime_test() {
+        assert!(is_prime(128591));
+        assert!(is_prime(17));
+        assert!(is_prime(37));
+        assert!(is_prime(43));
+        assert!(!is_prime(7 * 17 * 37 * 128591));
     }
 }
