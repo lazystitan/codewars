@@ -109,18 +109,7 @@ fn gcd(a: u64, b: u64) -> u64 {
 }
 
 fn smallest_possible_sum_gcd(arr: &[u64]) -> u128 {
-    if arr.len() == 0 {
-        return 0;
-    } else if arr.len() == 1 {
-        return arr[0] as u128;
-    }
-
-    let mut g = arr[0];
-    for i in 0..arr.len() {
-        g = gcd(g, arr[i]);
-    }
-
-    g as u128 * arr.len() as u128
+    arr.iter().fold(arr[0], |a, b| gcd(a, *b)) as u128 * arr.len() as u128
 }
 
 fn smallest_possible_sum(arr: &[u64]) -> u128 {
