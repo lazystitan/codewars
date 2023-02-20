@@ -1,3 +1,5 @@
+mod prime;
+
 use std::cmp::min;
 use std::collections::{HashMap, HashSet};
 
