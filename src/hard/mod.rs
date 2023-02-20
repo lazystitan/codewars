@@ -2,6 +2,7 @@ mod prime;
 
 use std::cmp::min;
 use std::collections::{HashMap, HashSet};
+use crate::hard::prime::mr_test;
 
 //5+(6-2)*9+3^(7-1)
 //562-9*+371-
@@ -86,7 +87,7 @@ fn prime_factorisation(mut n: u64, prime_list: &mut Vec<u64>) -> Vec<u64> {
 
     //find new if needed
     for i in (prime_list[prime_list.len() - 1] + 1)..=n {
-        if is_prime(i) {
+        if mr_test(i) {
             prime_list.push(i);
             while n % i == 0 && n >= i {
                 factors_list.push(i);
@@ -95,6 +96,31 @@ fn prime_factorisation(mut n: u64, prime_list: &mut Vec<u64>) -> Vec<u64> {
         }
     }
     factors_list
+}
+
+fn gcd(a: u64, b: u64) -> u64 {
+    if a == b {
+        a
+    } else if a > b {
+        gcd(a - b, b)
+    } else {
+        gcd(a, b - a)
+    }
+}
+
+fn smallest_possible_sum_gcd(arr: &[u64]) -> u128 {
+    if arr.len() == 0 {
+        return 0;
+    } else if arr.len() == 1 {
+        return arr[0] as u128;
+    }
+
+    let mut g = arr[0];
+    for i in 0..arr.len() {
+        g = gcd(g, arr[i]);
+    }
+
+    g as u128 * arr.len() as u128
 }
 
 fn smallest_possible_sum(arr: &[u64]) -> u128 {
@@ -165,30 +191,34 @@ mod test {
 
     #[test]
     fn smallest_possible_sum_tests() {
-        assert_eq!(smallest_possible_sum(&[1, 21, 55]), 3);
-        assert_eq!(smallest_possible_sum(&[3, 13, 23, 7, 83]), 5);
-        assert_eq!(smallest_possible_sum(&[4, 16, 24]), 12);
-        assert_eq!(smallest_possible_sum(&[30, 12]), 12);
-        assert_eq!(smallest_possible_sum(&[60, 12, 96, 48, 60, 24, 72, 36, 72, 72, 48]), 132);
-        assert_eq!(smallest_possible_sum(&[71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71]), 923);
-        assert_eq!(smallest_possible_sum(&[11, 22]), 22);
-        assert_eq!(smallest_possible_sum(&[9]), 9);
-        assert_eq!(smallest_possible_sum(&[1]), 1);
-        assert_eq!(smallest_possible_sum(&[9, 9]), 18);
+
+        let func = smallest_possible_sum;
+        let func = smallest_possible_sum_gcd;
+
+        assert_eq!(func(&[1, 21, 55]), 3);
+        assert_eq!(func(&[3, 13, 23, 7, 83]), 5);
+        assert_eq!(func(&[4, 16, 24]), 12);
+        assert_eq!(func(&[30, 12]), 12);
+        assert_eq!(func(&[60, 12, 96, 48, 60, 24, 72, 36, 72, 72, 48]), 132);
+        assert_eq!(func(&[71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71]), 923);
+        assert_eq!(func(&[11, 22]), 22);
+        assert_eq!(func(&[9]), 9);
+        assert_eq!(func(&[1]), 1);
+        assert_eq!(func(&[9, 9]), 18);
 
 
-        assert_eq!(smallest_possible_sum(&[17, 527, 323]), 51);
-        assert_eq!(smallest_possible_sum(&[4, 4, 4]), 12);
-        assert_eq!(smallest_possible_sum(&[3570, 7140]), 7140);
-        assert_eq!(smallest_possible_sum(&[12, 12]), 24);
-        assert_eq!(smallest_possible_sum(&[11, 11 * 2, 11 * 5, 11 * 2 * 5, 19 * 11, 19 * 11 * 5, 11 * 19 * 31, 11 * 19 * 31, 11]), 99);
-        // assert_eq!(smallest_possible_sum(&[7*17*37*43*128591, 7*17*37*128591, 17*37*43*128591, 17*37*43]), 17*37*4);
-        assert_eq!(smallest_possible_sum(&[7 * 128591, 17 * 128591]), 128591 * 2);
-        assert_eq!(smallest_possible_sum(&[
+        assert_eq!(func(&[17, 527, 323]), 51);
+        assert_eq!(func(&[4, 4, 4]), 12);
+        assert_eq!(func(&[3570, 7140]), 7140);
+        assert_eq!(func(&[12, 12]), 24);
+        assert_eq!(func(&[11, 11 * 2, 11 * 5, 11 * 2 * 5, 19 * 11, 19 * 11 * 5, 11 * 19 * 31, 11 * 19 * 31, 11]), 99);
+        assert_eq!(func(&[7*17*37*43*128591, 7*17*37*128591, 17*37*43*128591, 17*37*43]), 17*37*4);
+        assert_eq!(func(&[7 * 128591, 17 * 128591]), 128591 * 2);
+        assert_eq!(func(&[
             2 * 2 * 2 * 2 * 3 * 7 * 7 * 19 * 23 * 23 * 43,
             2 * 3 * 7 * 7 * 19 * 23 * 23 * 43
         ]), 2 * 3 * 7 * 7 * 19 * 23 * 23 * 43 * 2);
-        assert_eq!(smallest_possible_sum(&[
+        assert_eq!(func(&[
             2 * 2 * 3 * 13 * 37,
             2 * 2 * 3 * 13 * 37,
             2 * 2 * 3 * 13 * 37 * 19,
