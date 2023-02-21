@@ -1,4 +1,5 @@
 mod prime;
+mod cons;
 
 use std::cmp::min;
 use std::collections::{HashMap, HashSet};
@@ -182,8 +183,6 @@ mod test {
     fn smallest_possible_sum_tests() {
 
         let func = smallest_possible_sum;
-        let func = smallest_possible_sum_gcd;
-
         assert_eq!(func(&[1, 21, 55]), 3);
         assert_eq!(func(&[3, 13, 23, 7, 83]), 5);
         assert_eq!(func(&[4, 16, 24]), 12);
@@ -195,7 +194,7 @@ mod test {
         assert_eq!(func(&[1]), 1);
         assert_eq!(func(&[9, 9]), 18);
 
-
+        let func = smallest_possible_sum_gcd;
         assert_eq!(func(&[17, 527, 323]), 51);
         assert_eq!(func(&[4, 4, 4]), 12);
         assert_eq!(func(&[3570, 7140]), 7140);

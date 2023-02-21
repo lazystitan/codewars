@@ -1,6 +1,3 @@
-use std::cmp::min;
-use std::collections::{HashMap, HashSet};
-
 fn array_diff<T: PartialEq>(a: Vec<T>, b: Vec<T>) -> Vec<T> {
     // a.retain(|x| !b.contains(x));
     a.into_iter().filter(|item| {
@@ -89,7 +86,7 @@ fn dna_strand(dna: &str) -> String {
 }
 
 //TODO
-fn validate_pin(pin: &str) -> bool {
+fn validate_pin(_pin: &str) -> bool {
     false
 }
 
