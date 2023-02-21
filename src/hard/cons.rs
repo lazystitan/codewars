@@ -25,16 +25,13 @@ impl<T: Clone> Cons<T> {
     pub fn from_iter<I>(it: I) -> Self
         where I: IntoIterator<Item=T>
     {
-        Self::build_from_iter(&mut it.into_iter())
-    }
-
-    fn build_from_iter(it: &mut dyn Iterator<Item=T>) -> Self {
+        let mut it = it.into_iter();
         match it.next() {
             None => {
                 Cons::Null
             }
             Some(value) => {
-                Self::Cons(value, Box::new(Self::build_from_iter(it)))
+                Self::Cons(value, Box::new(Self::from_iter(it)))
             }
         }
     }
@@ -42,18 +39,12 @@ impl<T: Clone> Cons<T> {
     pub fn filter<F>(&self, fun: F) -> Self
         where F: Fn(&T) -> bool
     {
-         Self::filter_helper(self, fun)
-    }
-
-    fn filter_helper<F>(node: &Cons<T>, fun: F) -> Self
-        where F: Fn(&T) -> bool
-    {
-        match node {
+        match self {
             Cons::Cons(value, tail) => {
                 if !fun(value) {
-                    Self::filter_helper(tail, fun)
+                    tail.filter(fun)
                 } else {
-                    Cons::Cons(value.clone(), Box::new(Self::filter_helper(tail, fun)))
+                    Cons::Cons(value.clone(), Box::new(tail.filter(fun)))
                 }
             }
             Cons::Null => {
@@ -65,15 +56,9 @@ impl<T: Clone> Cons<T> {
     pub fn map<F,S>(&self, fun: F) -> Cons<S>
         where F: Fn(T) -> S, S: Clone
     {
-        Self::build_from_fun(self, fun)
-    }
-
-    fn build_from_fun<F,S>(node: &Cons<T>, fun: F) -> Cons<S>
-        where F: Fn(T) -> S, S: Clone
-    {
-        match node {
+        match self {
             Cons::Cons(value, tail) => {
-                Cons::Cons(fun(value.clone()), Box::new(Self::build_from_fun(tail, fun)))
+                Cons::Cons(fun(value.clone()), Box::new(tail.map(fun)))
             }
             Cons::Null => { Cons::Null }
         }
