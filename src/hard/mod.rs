@@ -1,3 +1,4 @@
+mod graph;
 mod prime;
 mod cons;
 
