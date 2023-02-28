@@ -1,6 +1,7 @@
 mod graph;
 mod prime;
 mod cons;
+mod integer_partitions;
 
 use std::cmp::min;
 use std::collections::{HashMap, HashSet};

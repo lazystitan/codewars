@@ -17,7 +17,7 @@ fn recover_secret(triplets: Vec<[char; 3]>) -> String {
         let indexs: Vec<usize> = tri.iter().map(|x| *(char_index_map.get(x).unwrap())).collect();
         graph[indexs[0]][indexs[1]] = 1;
         graph[indexs[1]][indexs[2]] = 1;
-        graph[indexs[0]][indexs[2]] = 1;
+        // graph[indexs[0]][indexs[2]] = 1;
     }
 
     let mut index_collector = vec![];
