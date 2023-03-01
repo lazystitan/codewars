@@ -156,61 +156,27 @@ fn smallest_possible_sum(arr: &[u64]) -> u128 {
 }
 
 fn mix(s1: &str, s2: &str) -> String {
-    let mut s1_hs = HashMap::new();
-    let mut s2_hs = HashMap::new();
+    let mut all = (b'a'..=b'z').map(|c| {
+        let c = c as char;
+        let ct1 = s1.chars().filter(|&lc| lc == c).collect::<String>();
+        let ct2 = s2.chars().filter(|&lc| lc == c).collect::<String>();
 
-    s1.chars().filter(|c| c.is_lowercase()).for_each(|c| { s1_hs.entry(c).and_modify(|v| *v += 1).or_insert(1); });
-    s2.chars().filter(|c| c.is_lowercase()).for_each(|c| { s2_hs.entry(c).and_modify(|v| *v += 1).or_insert(1); });
-
-    let mut s1: HashMap<char, i32> = s1_hs.into_iter().filter(|(_, n)|  *n > 1).collect();
-    let mut s2: HashMap<char, i32> = s2_hs.into_iter().filter(|(_, n)|  *n > 1).collect();
-
-    let mut v = vec![];
-    let intersection: Vec<char> = s1.iter().filter(|(c, _)| s2.contains_key(c)).map(|(c, _)| *c).collect();
-    for c in intersection  {
-        let n1 = *s1.get(&c).unwrap();
-        let n2 = *s2.get(&c).unwrap();
-        if  n2 > n1 {
-            v.push((2, c, n2));
-        } else if n2 < n1 {
-            v.push((1, c, n1));
-        } else {
-            v.push((3, c, n1));
+        match ct1.cmp(&ct2) {
+            Ordering::Less => { format!("2:{}", ct2) }
+            Ordering::Equal => { format!("=:{}", ct2) }
+            Ordering::Greater => { format!("1:{}", ct1) }
         }
-        s2.remove(&c);
-        s1.remove(&c);
-    }
+    }).filter(|s| s.len() > 3).collect::<Vec<_>>();
 
-    v.append(&mut s1.into_iter().map(|(c, n)| (1,c, n)).collect());
-    v.append(&mut s2.into_iter().map(|(c, n)| (2,c, n)).collect());
-
-    v.sort_by(|(g1, c1, n1), (g2,c2, n2)| {
-        if *n1 > *n2 {
-            Ordering::Greater
-        } else if *n1 < *n2 {
-            Ordering::Less
-        } else {
-            match g2.cmp(g1) {
-                Ordering::Less => {Ordering::Less}
-                Ordering::Equal => {c2.cmp(c1)}
-                Ordering::Greater => {Ordering::Greater}
-            }
+    all.as_mut_slice().sort_unstable_by(|s1, s2| {
+        match s2.len().cmp(&s1.len()) {
+            Ordering::Equal => { s1.cmp(s2) }
+            p => p
         }
     });
 
-    v.reverse();
+    all.join("/")
 
-    v.into_iter().map(|(s, c, n)| {
-        if s == 1 {
-            format!("1:{}", c.to_string().repeat(n as usize))
-        } else if s == 2 {
-            format!("2:{}", c.to_string().repeat(n as usize))
-        } else if s == 3 {
-            format!("=:{}", c.to_string().repeat(n as usize))
-        } else {
-            String::new()
-        }
-    }).collect::<Vec<String>>().join("/")
 }
 
 #[cfg(test)]
