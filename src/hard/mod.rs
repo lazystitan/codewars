@@ -181,15 +181,19 @@ fn mix(s1: &str, s2: &str) -> String {
 
 fn next_smaller_number(n: u64) -> Option<u64> {
     let mut nv = n.to_string().chars().collect::<Vec<_>>();
-    nv.sort();
-    let lower = 10_u64.pow(nv.len() as u32 - 1);
-    for i in (lower..n).rev() {
-        let mut is = i.to_string().chars().collect::<Vec<_>>();
-        is.sort();
-        if (0..nv.len()).all(|x| nv[x] == is[x]) {
-            return Some(i as u64);
-        } else {
-            continue;
+    for p in (0..nv.len()).rev() {
+        for i in (0..p).rev() {
+            if nv[i] > nv[p] && !(nv[p] == '0' && i == 0) {
+                let m = nv[i];
+                nv[i] = nv[p];
+                nv[p] = m;
+                let len = nv.len();
+                if i < len {
+                   nv[(i + 1)..len].sort();
+                   nv[(i + 1)..len].reverse();
+                }
+                return Some(nv.into_iter().collect::<String>().parse().unwrap())
+            }
         }
     }
     None
@@ -207,6 +211,7 @@ mod test {
         assert_eq!(Some(513), next_smaller_number(531));
         assert_eq!(None, next_smaller_number(1027));
         assert_eq!(Some(414), next_smaller_number(441));
+        assert_eq!(Some(56149891544), next_smaller_number(56149894145));
     }
 
 
