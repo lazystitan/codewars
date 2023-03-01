@@ -200,7 +200,7 @@ fn mix(s1: &str, s2: &str) -> String {
 
     v.reverse();
 
-    let mut s = v.into_iter().map(|(s, c, n)| {
+    v.into_iter().map(|(s, c, n)| {
         if s == 1 {
             format!("1:{}", c.to_string().repeat(n as usize))
         } else if s == 2 {
@@ -210,14 +210,7 @@ fn mix(s1: &str, s2: &str) -> String {
         } else {
             String::new()
         }
-    }).fold(String::new(), |mut a, b| {
-        a += "/";
-        a += &b;
-        a
-    });
-
-    (!s.is_empty()).then(|| s.remove(0));
-    s
+    }).collect::<Vec<String>>().join("/")
 }
 
 #[cfg(test)]
