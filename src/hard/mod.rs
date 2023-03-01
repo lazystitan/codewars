@@ -3,7 +3,7 @@ mod prime;
 mod cons;
 mod integer_partitions;
 
-use std::cmp::min;
+use std::cmp::{min, Ordering};
 use std::collections::{HashMap, HashSet};
 use crate::hard::prime::mr_test;
 
@@ -155,9 +155,93 @@ fn smallest_possible_sum(arr: &[u64]) -> u128 {
     biggest_factor * len as u128
 }
 
+fn mix(s1: &str, s2: &str) -> String {
+    let mut s1_hs = HashMap::new();
+    let mut s2_hs = HashMap::new();
+
+    s1.chars().filter(|c| c.is_lowercase()).for_each(|c| { s1_hs.entry(c).and_modify(|v| *v += 1).or_insert(1); });
+    s2.chars().filter(|c| c.is_lowercase()).for_each(|c| { s2_hs.entry(c).and_modify(|v| *v += 1).or_insert(1); });
+
+    let mut s1: HashMap<char, i32> = s1_hs.into_iter().filter(|(_, n)|  *n > 1).collect();
+    let mut s2: HashMap<char, i32> = s2_hs.into_iter().filter(|(_, n)|  *n > 1).collect();
+
+    let mut v = vec![];
+    let intersection: Vec<char> = s1.iter().filter(|(c, _)| s2.contains_key(c)).map(|(c, _)| *c).collect();
+    for c in intersection  {
+        let n1 = *s1.get(&c).unwrap();
+        let n2 = *s2.get(&c).unwrap();
+        if  n2 > n1 {
+            v.push((2, c, n2));
+        } else if n2 < n1 {
+            v.push((1, c, n1));
+        } else {
+            v.push((3, c, n1));
+        }
+        s2.remove(&c);
+        s1.remove(&c);
+    }
+
+    v.append(&mut s1.into_iter().map(|(c, n)| (1,c, n)).collect());
+    v.append(&mut s2.into_iter().map(|(c, n)| (2,c, n)).collect());
+
+    v.sort_by(|(g1, c1, n1), (g2,c2, n2)| {
+        if *n1 > *n2 {
+            Ordering::Greater
+        } else if *n1 < *n2 {
+            Ordering::Less
+        } else {
+            match g2.cmp(g1) {
+                Ordering::Less => {Ordering::Less}
+                Ordering::Equal => {c2.cmp(c1)}
+                Ordering::Greater => {Ordering::Greater}
+            }
+        }
+    });
+
+    v.reverse();
+
+    let mut s = v.into_iter().map(|(s, c, n)| {
+        if s == 1 {
+            format!("1:{}", c.to_string().repeat(n as usize))
+        } else if s == 2 {
+            format!("2:{}", c.to_string().repeat(n as usize))
+        } else if s == 3 {
+            format!("=:{}", c.to_string().repeat(n as usize))
+        } else {
+            String::new()
+        }
+    }).fold(String::new(), |mut a, b| {
+        a += "/";
+        a += &b;
+        a
+    });
+
+    (!s.is_empty()).then(|| s.remove(0));
+    s
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+
+
+    #[test]
+    fn basics_mix() {
+        basics_mix_testing("Are they here", "yes, they are here",
+                "2:eeeee/2:yy/=:hh/=:rr");
+        basics_mix_testing("looping is fun but dangerous", "less dangerous than coding",
+                "1:ooo/1:uuu/2:sss/=:nnn/1:ii/2:aa/2:dd/2:ee/=:gg");
+        basics_mix_testing(" In many languages", " there's a pair of functions",
+                "1:aaa/1:nnn/1:gg/2:ee/2:ff/2:ii/2:oo/2:rr/2:ss/2:tt");
+        basics_mix_testing("Lords of the Fallen", "gamekult", "1:ee/1:ll/1:oo");
+        basics_mix_testing("codewars", "codewars", "");
+        basics_mix_testing("A generation must confront the looming ", "codewarrs",
+                "1:nnnnn/1:ooooo/1:tttt/1:eee/1:gg/1:ii/1:mm/=:rr");
+    }
+
+    fn basics_mix_testing(s1: &str, s2: &str, exp: &str) -> () {
+        assert_eq!(&mix(s1, s2), exp)
+    }
 
     fn to_postfix_do_test(actual: &str, expected: &str) {
         assert_eq!(actual, expected, "\nYour answer (left) is not the correct answer (right)")
