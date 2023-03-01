@@ -1,11 +1,12 @@
+use std::cmp::{min, Ordering};
+use std::collections::{HashMap, HashSet};
+
+use crate::hard::prime::mr_test;
+
 mod graph;
 mod prime;
 mod cons;
 mod integer_partitions;
-
-use std::cmp::{min, Ordering};
-use std::collections::{HashMap, HashSet};
-use crate::hard::prime::mr_test;
 
 //5+(6-2)*9+3^(7-1)
 //562-9*+371-
@@ -176,26 +177,51 @@ fn mix(s1: &str, s2: &str) -> String {
     });
 
     all.join("/")
-
 }
+
+fn next_smaller_number(n: u64) -> Option<u64> {
+    let mut nv = n.to_string().chars().collect::<Vec<_>>();
+    nv.sort();
+    let lower = 10_u64.pow(nv.len() as u32 - 1);
+    for i in (lower..n).rev() {
+        let mut is = i.to_string().chars().collect::<Vec<_>>();
+        is.sort();
+        if (0..nv.len()).all(|x| nv[x] == is[x]) {
+            return Some(i as u64);
+        } else {
+            continue;
+        }
+    }
+    None
+}
+
 
 #[cfg(test)]
 mod test {
     use super::*;
 
+    #[test]
+    fn next_smaller_number_test() {
+        assert_eq!(Some(12), next_smaller_number(21));
+        assert_eq!(Some(790), next_smaller_number(907));
+        assert_eq!(Some(513), next_smaller_number(531));
+        assert_eq!(None, next_smaller_number(1027));
+        assert_eq!(Some(414), next_smaller_number(441));
+    }
+
 
     #[test]
     fn basics_mix() {
         basics_mix_testing("Are they here", "yes, they are here",
-                "2:eeeee/2:yy/=:hh/=:rr");
+                           "2:eeeee/2:yy/=:hh/=:rr");
         basics_mix_testing("looping is fun but dangerous", "less dangerous than coding",
-                "1:ooo/1:uuu/2:sss/=:nnn/1:ii/2:aa/2:dd/2:ee/=:gg");
+                           "1:ooo/1:uuu/2:sss/=:nnn/1:ii/2:aa/2:dd/2:ee/=:gg");
         basics_mix_testing(" In many languages", " there's a pair of functions",
-                "1:aaa/1:nnn/1:gg/2:ee/2:ff/2:ii/2:oo/2:rr/2:ss/2:tt");
+                           "1:aaa/1:nnn/1:gg/2:ee/2:ff/2:ii/2:oo/2:rr/2:ss/2:tt");
         basics_mix_testing("Lords of the Fallen", "gamekult", "1:ee/1:ll/1:oo");
         basics_mix_testing("codewars", "codewars", "");
         basics_mix_testing("A generation must confront the looming ", "codewarrs",
-                "1:nnnnn/1:ooooo/1:tttt/1:eee/1:gg/1:ii/1:mm/=:rr");
+                           "1:nnnnn/1:ooooo/1:tttt/1:eee/1:gg/1:ii/1:mm/=:rr");
     }
 
     fn basics_mix_testing(s1: &str, s2: &str, exp: &str) -> () {
@@ -226,7 +252,6 @@ mod test {
 
     #[test]
     fn smallest_possible_sum_tests() {
-
         let func = smallest_possible_sum;
         assert_eq!(func(&[1, 21, 55]), 3);
         assert_eq!(func(&[3, 13, 23, 7, 83]), 5);
@@ -245,7 +270,7 @@ mod test {
         assert_eq!(func(&[3570, 7140]), 7140);
         assert_eq!(func(&[12, 12]), 24);
         assert_eq!(func(&[11, 11 * 2, 11 * 5, 11 * 2 * 5, 19 * 11, 19 * 11 * 5, 11 * 19 * 31, 11 * 19 * 31, 11]), 99);
-        assert_eq!(func(&[7*17*37*43*128591, 7*17*37*128591, 17*37*43*128591, 17*37*43]), 17*37*4);
+        assert_eq!(func(&[7 * 17 * 37 * 43 * 128591, 7 * 17 * 37 * 128591, 17 * 37 * 43 * 128591, 17 * 37 * 43]), 17 * 37 * 4);
         assert_eq!(func(&[7 * 128591, 17 * 128591]), 128591 * 2);
         assert_eq!(func(&[
             2 * 2 * 2 * 2 * 3 * 7 * 7 * 19 * 23 * 23 * 43,
