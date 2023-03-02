@@ -1,3 +1,4 @@
+use std::arch::asm;
 use std::cmp::{min, Ordering};
 use std::collections::{HashMap, HashSet};
 
@@ -179,24 +180,58 @@ fn mix(s1: &str, s2: &str) -> String {
     all.join("/")
 }
 
-fn next_smaller_number(n: u64) -> Option<u64> {
-    let mut nv = n.to_string().chars().collect::<Vec<_>>();
-    for p in (0..nv.len()).rev() {
-        for i in (0..p).rev() {
-            if nv[i] > nv[p] && !(nv[p] == '0' && i == 0) {
-                let m = nv[i];
-                nv[i] = nv[p];
-                nv[p] = m;
-                let len = nv.len();
-                if i < len {
-                   nv[(i + 1)..len].sort();
-                   nv[(i + 1)..len].reverse();
-                }
-                return Some(nv.into_iter().collect::<String>().parse().unwrap())
-            }
+fn is_sorted(x: &[char]) -> bool {
+    if x.len() <= 1 {
+        return true;
+    }
+    let mut max = x[0];
+    for i in 1..x.len() {
+        if max > x[i] {
+            return false;
+        } else {
+            max = x[i];
         }
     }
-    None
+    true
+}
+
+fn next_smaller_number(n: u64) -> Option<u64> {
+    let mut nv = n.to_string().chars().collect::<Vec<_>>();
+    if is_sorted(&nv) {
+        return None;
+    }
+    let last_i = nv.len() - 1;
+    let mut len_of_sorted = nv.len() - 2;
+    let mut exchange_p = 0;
+
+    for start_i in (0..=len_of_sorted).rev() {
+        if !is_sorted(&nv[start_i..=last_i]) {
+            exchange_p = start_i;
+            break;
+        }
+    }
+
+    let mut exchange_q = usize::MAX;
+    let mut next_smaller_c = '/';
+    for i in (exchange_p + 1)..=last_i {
+        if nv[i] <  nv[exchange_p] && nv[i] > next_smaller_c && !(exchange_p == 0 && nv[i] == '0') {
+            next_smaller_c = nv[i];
+            exchange_q = i;
+        }
+    }
+
+    if exchange_q == usize::MAX {
+        return None;
+    }
+
+    let m = nv[exchange_p];
+    nv[exchange_p] = nv[exchange_q];
+    nv[exchange_q] = m;
+
+    nv[(exchange_p + 1) ..= last_i].sort();
+    nv[(exchange_p + 1) ..= last_i].reverse();
+
+    Some(nv.into_iter().collect::<String>().parse().unwrap())
 }
 
 
