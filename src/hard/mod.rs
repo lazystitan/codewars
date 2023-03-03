@@ -1,6 +1,6 @@
 use std::arch::asm;
 use std::cmp::{min, Ordering};
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
 
 use crate::hard::prime::mr_test;
 
@@ -234,10 +234,76 @@ fn next_smaller_number(n: u64) -> Option<u64> {
     Some(nv.into_iter().collect::<String>().parse().unwrap())
 }
 
+//1 * 2 + 1 = 3
+//1 * 3 + 1 = 4
+//3 * 2 + 1 = 7
+//4 * 2 + 1 = 9
+//3 * 3 + 1 = 10
+//4 * 3 + 1 = 13
+fn dbl_linear(n: u32) -> u32{
+    let n = n as usize;
+    let mut x = 0; let mut y = 0;
+    let mut u = vec![1];
+    (0..=n).for_each(|_| {
+        let next_x = 2 * u[x] + 1;
+        let next_y = 3 * u[y] + 1;
+        match next_x.cmp(&next_y) {
+            Ordering::Less => {  u.push(next_x); x += 1; }
+            Ordering::Equal => { u.push(next_x); x += 1; y += 1; }
+            Ordering::Greater => { u.push(next_y); y += 1;}
+        }
+    });
+    u[n]
+}
+
+fn n_linear(m: &[u32], n: usize) -> u32 {
+    let mut u = vec![1];
+    let mut m_index = vec![0; m.len()];
+    let mut r_index = vec![0; m.len()];
+    (0..=n).for_each(|_| {
+        for (i, &mult) in m.iter().enumerate() {
+            r_index[i] = u[m_index[i]] * mult + 1;
+        }
+        let mut min_r = *r_index.iter().min().unwrap();
+        r_index.iter_mut().enumerate().for_each(|(i, v)| {
+            if *v == min_r {
+                m_index[i] += 1;
+            }
+        });
+        u.push(min_r);
+    });
+
+    u[n]
+}
 
 #[cfg(test)]
 mod test {
     use super::*;
+
+    fn dbl_linear_testing(n: u32, exp: u32) -> () {
+        assert_eq!(dbl_linear(n), exp)
+    }
+
+    #[test]
+    fn pair_test() {
+        assert_eq!(n_linear(&[2, 3], 10), 22);
+        assert_eq!(n_linear(&[3, 2], 10), 22);
+    }
+
+    #[test]
+    fn triplet_test() {
+        assert_eq!(n_linear(&[5, 7, 8], 10), 64);
+        assert_eq!(n_linear(&[5, 7, 8], 11), 65);
+    }
+
+    #[test]
+    fn basics_dbl_linear() {
+        dbl_linear_testing(10, 22);
+        dbl_linear_testing(20, 57);
+        dbl_linear_testing(30, 91);
+        dbl_linear_testing(50, 175);
+        dbl_linear_testing(100, 447);
+    }
 
     #[test]
     fn next_smaller_number_test() {
