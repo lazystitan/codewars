@@ -8,6 +8,8 @@ mod graph;
 mod prime;
 mod cons;
 mod integer_partitions;
+mod evaluate;
+mod rect_area;
 
 //5+(6-2)*9+3^(7-1)
 //562-9*+371-
