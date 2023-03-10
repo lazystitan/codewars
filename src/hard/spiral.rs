@@ -1,142 +1,24 @@
-enum Direction { Up, Down, Left, Right }
-
-fn test(r: &Vec<Vec<i8>>, d: &Direction, i: usize, j: usize) -> Option<Direction> {
-    let fuck = r.len() - 3;
-    let mut just_continue = false;
-    let temp_d = match d {
-        Direction::Up => {
-            if  ((i < 2 && r[0][j] == 1) || (i >= 2 && r[i - 2][j] == 1)) && r[i + 2][j] != 1 {
-                None
-            } else if i < 2 && r[0][j] == 1 {
-                Some(Direction::Right)
-            } else if i >= 2 && r[i - 2][j] == 1 {
-                Some(Direction::Right)
-            } else {
-                just_continue = true;
-                Some(Direction::Up)
-            }
-        }
-        Direction::Down => {
-            if  ((i > fuck && r[r.len() - 1][j] == 1) || (i <= fuck && r[i + 2][j] == 1)) && r[i - 2][j] != 1 {
-                None
-            } else if i > fuck && r[r.len() - 1][j] == 1 {
-                Some(Direction::Left)
-            } else if i <= fuck && r[i + 2][j] == 1 {
-                Some(Direction::Left)
-            } else {
-                just_continue = true;
-                Some(Direction::Down)
-            }
-        }
-        Direction::Left => {
-            if  ((j < 2 && r[i][0] == 1) || (j >= 2 && r[i][j - 2] == 1)) && r[i][j + 2] != 1 {
-                None
-            } else if j < 2 && r[i][0] == 1 {
-                Some(Direction::Up)
-            } else if j >= 2 && r[i][j - 2] == 1 {
-                Some(Direction::Up)
-            } else {
-                just_continue = true;
-                Some(Direction::Left)
-            }
-        }
-        Direction::Right => {
-            if  ((j > fuck && r[i][r.len() - 1] == 1) || (j <= fuck && r[i][j + 2] == 1)) && r[i][j - 2] != 1 {
-                None
-            } else if j > fuck && r[i][r.len() - 1] == 1 {
-                Some(Direction::Down)
-            } else if j <= fuck && r[i][j + 2] == 1 {
-                Some(Direction::Down)
-            } else {
-                just_continue = true;
-                Some(Direction::Right)
-            }
-        }
-    };
-
-    if temp_d.is_none() {
-        return None;
-    } else if just_continue {
-        return temp_d
-    } else if !just_continue {
-        return match temp_d.unwrap() {
-            Direction::Up => {
-                if i < 2 && r[0][j] == 1 {
-                    None
-                } else if i >= 2 && r[i - 2][j] == 1 {
-                    None
-                } else {
-                    just_continue = true;
-                    Some(Direction::Up)
-                }
-            }
-            Direction::Down => {
-                if i > fuck && r[r.len() - 1][j] == 1 {
-                    None
-                } else if i <= fuck && r[i + 2][j] == 1 {
-                    None
-                } else {
-                    just_continue = true;
-                    Some(Direction::Down)
-                }
-            }
-            Direction::Left => {
-                if j < 2 && r[i][0] == 1 {
-                    None
-                } else if j >= 2 && r[i][j - 2] == 1 {
-                    None
-                } else {
-                    just_continue = true;
-                    Some(Direction::Left)
-                }
-            }
-            Direction::Right => {
-                if j > fuck && r[i][r.len() - 1] == 1 {
-                    None
-                } else if j <= fuck && r[i][j + 2] == 1 {
-                    None
-                } else {
-                    just_continue = true;
-                    Some(Direction::Right)
-                }
-            }
-        };
-    }
-
-
-    None
-}
-
 fn spiralize(size: usize) -> Vec<Vec<i8>> {
-    let mut result = vec![vec![0; size]; size];
-    result[0][0] = 1;
+    let mut spiral = vec![vec![0; size]; size];
+    let mut value = 1;
 
-    let mut d = Direction::Right;
-    let mut i = 0;
-    let mut j = 0;
+    for j in 0..(size + 1) / 2 {
+        for i in j..(size - j) {
+            spiral[i][j] = value;
+            spiral[j][i] = value;
 
-    loop {
-        match d {
-            Direction::Up => {
-                i -= 1;
-            }
-            Direction::Down => {
-                i += 1;
-            }
-            Direction::Left => {
-                j -= 1;
-            }
-            Direction::Right => {
-                j += 1;
-            }
+            spiral[i][size - 1 - j] = value;
+            spiral[size - 1 - j][i] = value;
         }
-        result[i][j] = 1;
-        match test(&result, &d, i, j) {
-            None => { break; }
-            Some(nd) => { d = nd; }
+
+        value = (value + 1) % 2;
+
+        if j < (size - 1) / 2 || spiral[j][j - 1] == 1 {
+            spiral[j + 1][j] = value;
         }
     }
-    result
+
+    spiral
 }
 
 #[cfg(test)]
