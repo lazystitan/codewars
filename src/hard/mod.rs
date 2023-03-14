@@ -11,6 +11,7 @@ mod integer_partitions;
 mod evaluate;
 mod rect_area;
 mod spiral;
+mod alphabetic_anagrams;
 
 //5+(6-2)*9+3^(7-1)
 //562-9*+371-
